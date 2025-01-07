@@ -1,30 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Habit Tracker</title>
-  <link rel="stylesheet" href="style.css">
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Firebase SDK scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>Habit Tracker</h1>
-    <input type="text" id="habitInput" placeholder="Enter a new habit">
-    <button id="addHabit">Add Habit</button>
-    <table id="habitTable">
-      <thead>
-        <tr>
-          <th>Habit Name</th>
-          <th>Created At</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-  <script src="script.js"></script>
+    <div class="container">
+        <h1>Habit Tracker</h1>
+        <div class="input-group">
+            <input type="text" id="habit-input" placeholder="Enter a new habit">
+            <button id="add-habit-btn">Add Habit</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Habit Name</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                    <th colspan="30">Last 30 Days</th>
+                    <th>Current Streak</th>
+                    <th>Longest Streak</th>
+                    <th>Last 7 Days</th>
+                    <th>Last 30 Days</th>
+                    <th>YTD</th>
+                </tr>
+            </thead>
+            <tbody id="habit-table-body">
+                <!-- Dynamic rows will be added here -->
+            </tbody>
+        </table>
+    </div>
+    <script src="script.js" defer></script>
 </body>
 </html>
