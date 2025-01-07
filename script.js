@@ -1,127 +1,164 @@
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyA2LV0KjpKw68y7XnQ410HINhm2_PtB_v8",
-  authDomain: "habit-tracker-e469f.firebaseapp.com",
-  databaseURL: "https://habit-tracker-e469f-default-rtdb.firebaseio.com",
-  projectId: "habit-tracker-e469f",
-  storageBucket: "habit-tracker-e469f.firebasestorage.app",
-  messagingSenderId: "798400313959",
-  appId: "1:798400313959:web:565643f1236a861fe9f2c2",
+    apiKey: "AIzaSyA2LV0KjpKw68y7XnQ410HINhm2_PtB_v8",
+    authDomain: "habit-tracker-e469f.firebaseapp.com",
+    databaseURL: "https://habit-tracker-e469f-default-rtdb.firebaseio.com",
+    projectId: "habit-tracker-e469f",
+    storageBucket: "habit-tracker-e469f.firebasestorage.app",
+    messagingSenderId: "798400313959",
+    appId: "1:798400313959:web:565643f1236a861fe9f2c2"
 };
 
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+const app = firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// DOM elements
-const habitInput = document.getElementById("habitInput");
-const addHabitButton = document.getElementById("addHabit");
-const habitTable = document.getElementById("habitTable");
+const habitInput = document.getElementById("habit-input");
+const addHabitBtn = document.getElementById("add-habit-btn");
+const habitTableBody = document.getElementById("habit-table-body");
 
-// Generate columns for each day of the year
-const generateDaysOfYear = (year) => {
-  const days = [];
-  const startDate = new Date(`${year}-01-01`);
-  const endDate = new Date(`${year}-12-31`);
+// Helper function to get the last 30 days
+function getLast30Days() {
+    const dates = [];
+    const today = new Date();
+    for (let i = 0; i < 30; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        dates.push(date.toISOString().split("T")[0]); // Format: YYYY-MM-DD
+    }
+    return dates.reverse();
+}
 
-  let currentDate = startDate;
-  while (currentDate <= endDate) {
-    days.push(new Date(currentDate));
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-  return days;
-};
+// Function to add a habit
+function addHabit(name) {
+    const habitRef = database.ref("habits").push();
+    const habitData = {
+        name: name,
+        createdAt: new Date().toISOString(),
+        days: {} // Store daily completion status
+    };
 
-// Render the table
-const renderTable = (habits) => {
-  const year = 2025; // Adjust as needed
-  const days = generateDaysOfYear(year);
-
-  // Create table header
-  let tableHeader = "<tr><th>Habit Name</th>";
-  days.forEach((day) => {
-    tableHeader += `<th>${day.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    })}</th>`;
-  });
-  tableHeader += "<th>Actions</th></tr>";
-
-  // Create table body
-  let tableBody = "";
-  Object.entries(habits).forEach(([id, habit]) => {
-    tableBody += `<tr><td>${habit.name}</td>`;
-    days.forEach((day) => {
-      const dateKey = day.toISOString().split("T")[0];
-      const isDone = habit.dates && habit.dates.includes(dateKey);
-      tableBody += `<td class="day-cell ${
-        isDone ? "done" : "not-done"
-      }" data-id="${id}" data-date="${dateKey}"></td>`;
+    const last30Days = getLast30Days();
+    last30Days.forEach((date) => {
+        habitData.days[date] = false; // Initialize all as incomplete
     });
-    tableBody += `
-      <td>
-        <button class="delete-button" data-id="${id}">Delete</button>
-      </td>
-    </tr>`;
-  });
 
-  habitTable.innerHTML = tableHeader + tableBody;
-
-  // Add event listeners for toggling days
-  document.querySelectorAll(".day-cell").forEach((cell) => {
-    cell.addEventListener("click", (e) => {
-      const id = cell.dataset.id;
-      const date = cell.dataset.date;
-      const habit = habits[id];
-
-      if (!habit.dates) habit.dates = [];
-      if (habit.dates.includes(date)) {
-        // Remove date
-        habit.dates = habit.dates.filter((d) => d !== date);
-        cell.classList.remove("done");
-        cell.classList.add("not-done");
-      } else {
-        // Add date
-        habit.dates.push(date);
-        cell.classList.remove("not-done");
-        cell.classList.add("done");
-      }
-      database.ref(`habits/${id}`).update({ dates: habit.dates });
+    habitRef.set(habitData, (error) => {
+        if (error) {
+            console.error("Error adding habit:", error);
+        } else {
+            console.log("Habit added successfully");
+        }
     });
-  });
+}
 
-  // Add event listeners for delete buttons
-  document.querySelectorAll(".delete-button").forEach((button) => {
-    button.addEventListener("click", (e) => {
-      const id = button.dataset.id;
-      database.ref(`habits/${id}`).remove();
+// Function to toggle day status
+function toggleDayStatus(habitId, date) {
+    const dayRef = database.ref(`habits/${habitId}/days/${date}`);
+    dayRef.once("value", (snapshot) => {
+        const currentValue = snapshot.val();
+        dayRef.set(!currentValue); // Toggle the value
     });
-  });
-};
+}
 
-// Add a new habit
-addHabitButton.addEventListener("click", () => {
-  const habitName = habitInput.value.trim();
-  if (!habitName) {
-    alert("Please enter a habit name!");
-    return;
-  }
+// Function to calculate streaks and stats
+function calculateStreaks(days) {
+    const dates = Object.keys(days).sort();
+    let currentStreak = 0;
+    let longestStreak = 0;
+    let last7Days = 0;
+    let last30Days = 0;
+    let ytd = 0;
 
-  const habit = {
-    name: habitName,
-    createdAt: new Date().toISOString(),
-    dates: [], // To track dates when the habit was completed
-  };
+    const today = new Date();
+    const janFirst = new Date(today.getFullYear(), 0, 1);
 
-  // Save habit to Firebase
-  database.ref("habits").push(habit);
+    let streak = 0;
+    dates.forEach((date) => {
+        const completed = days[date];
+        const dayDate = new Date(date);
 
-  // Clear input field
-  habitInput.value = "";
+        if (completed) {
+            streak++;
+            ytd += dayDate >= janFirst ? 1 : 0;
+            last7Days += dayDate >= new Date(today.setDate(today.getDate() - 7)) ? 1 : 0;
+            last30Days += dayDate >= new Date(today.setDate(today.getDate() - 30)) ? 1 : 0;
+        } else {
+            streak = 0;
+        }
+
+        longestStreak = Math.max(longestStreak, streak);
+    });
+
+    currentStreak = streak;
+    return { currentStreak, longestStreak, last7Days, last30Days, ytd };
+}
+
+// Function to render habits in the table
+function renderHabitTable(habits) {
+    habitTableBody.innerHTML = ""; // Clear the table
+
+    const last30Days = getLast30Days();
+
+    for (const habitId in habits) {
+        const habit = habits[habitId];
+        const row = document.createElement("tr");
+
+        const nameCell = document.createElement("td");
+        nameCell.textContent = habit.name;
+
+        const createdAtCell = document.createElement("td");
+        createdAtCell.textContent = new Date(habit.createdAt).toLocaleDateString();
+
+        const actionsCell = document.createElement("td");
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Delete";
+        deleteBtn.classList.add("delete-btn");
+        deleteBtn.addEventListener("click", () => deleteHabit(habitId));
+        actionsCell.appendChild(deleteBtn);
+
+        row.appendChild(nameCell);
+        row.appendChild(createdAtCell);
+        row.appendChild(actionsCell);
+
+        last30Days.forEach((date) => {
+            const dayCell = document.createElement("td");
+            const toggleBtn = document.createElement("button");
+            toggleBtn.classList.add("toggle-btn", habit.days[date] ? "completed" : "incomplete");
+            toggleBtn.addEventListener("click", () => toggleDayStatus(habitId, date));
+            dayCell.appendChild(toggleBtn);
+            row.appendChild(dayCell);
+        });
+
+        const { currentStreak, longestStreak, last7Days, last30Days: days30, ytd } = calculateStreaks(habit.days);
+
+        const statsCells = [currentStreak, longestStreak, last7Days, days30, ytd].map((stat) => {
+            const cell = document.createElement("td");
+            cell.textContent = stat;
+            return cell;
+        });
+
+        statsCells.forEach((cell) => row.appendChild(cell));
+
+        habitTableBody.appendChild(row);
+    }
+}
+
+// Listen for habit additions/changes in Firebase
+database.ref("habits").on("value", (snapshot) => {
+    const habits = snapshot.val();
+    if (habits) {
+        renderHabitTable(habits);
+    } else {
+        habitTableBody.innerHTML = ""; // Clear table if no habits
+    }
 });
 
-// Fetch habits from Firebase
-database.ref("habits").on("value", (snapshot) => {
-  const habits = snapshot.val() || {};
-  renderTable(habits);
+// Add habit button click event
+addHabitBtn.addEventListener("click", () => {
+    const habitName = habitInput.value.trim();
+    if (habitName) {
+        addHabit(habitName);
+        habitInput.value = ""; // Clear input field
+    }
 });
