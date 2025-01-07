@@ -93,3 +93,19 @@ th {
   font-size: 0.9em;
   color: #666;
 }
+
+.day-cell {
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  text-align: center;
+}
+
+.day-cell.done {
+  background-color: green;
+}
+
+.day-cell.not-done {
+  background-color: red;
+}
+
