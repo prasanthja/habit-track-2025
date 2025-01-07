@@ -1,95 +1,90 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f8f9fa;
     margin: 0;
     padding: 0;
+    background-color: #f8f9fa;
 }
 
 .container {
-    max-width: 1000px;
+    max-width: 900px;
     margin: 50px auto;
+    text-align: center;
+    background: #fff;
     padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
+    border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
-    text-align: center;
-    color: #28a745;
+    color: #4CAF50;
 }
 
 .input-group {
-    display: flex;
     margin-bottom: 20px;
 }
 
-#habit-input {
-    flex: 1;
+input[type="text"] {
     padding: 10px;
+    width: 70%;
     border: 1px solid #ccc;
-    border-radius: 4px 0 0 4px;
-    outline: none;
+    border-radius: 5px;
 }
 
-#add-habit-btn {
+button {
     padding: 10px 20px;
     border: none;
-    background-color: #28a745;
+    border-radius: 5px;
+    background-color: #4CAF50;
     color: white;
     cursor: pointer;
-    border-radius: 0 4px 4px 0;
-    outline: none;
 }
 
-#add-habit-btn:hover {
-    background-color: #218838;
+button:hover {
+    background-color: #45a049;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
-    font-size: 12px;
 }
 
 th, td {
-    padding: 8px;
+    padding: 10px;
     text-align: center;
     border: 1px solid #ddd;
 }
 
 th {
-    background-color: #28a745;
+    background-color: #4CAF50;
     color: white;
 }
 
-button.delete-btn {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 6px 12px;
-    cursor: pointer;
-}
-
-button.delete-btn:hover {
-    background-color: #c82333;
-}
-
-button.toggle-btn {
+.toggle-btn {
     width: 20px;
     height: 20px;
-    border: none;
     border-radius: 50%;
+    border: none;
     cursor: pointer;
-    outline: none;
 }
 
-button.toggle-btn.completed {
-    background-color: #28a745;
+.toggle-btn.completed {
+    background-color: green;
 }
 
-button.toggle-btn.incomplete {
-    background-color: #dc3545;
+.toggle-btn.incomplete {
+    background-color: red;
+}
+
+.delete-btn {
+    background-color: red;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background-color: darkred;
 }
